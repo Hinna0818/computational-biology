@@ -304,7 +304,7 @@ modTOM[seq(4), seq(4)]
 
 IMConn <- softConnectivity(expr[, modProbes])
 
-# 选择连接度排名前10的
+# 选择连接度排名前40的
 nTop <- 40
 target.genes <- rownames(modTOM)[(length(IMConn) - rank(IMConn)) <= nTop]
 
