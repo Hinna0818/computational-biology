@@ -7,25 +7,15 @@
 #' efficient for biological networks.
 #'
 #' @param g An \code{igraph} object. The graph to be clustered. It can be directed or undirected.
-#' @param inflation Numeric. The inflation parameter (often denoted as 'r').
-#'   This is the main "tuning knob" for the algorithm. It controls the granularity
-#'   of the clusters:
-#'   \itemize{
-#'     \item Larger values (e.g., > 2) result in tighter, smaller, and more numerous clusters.
-#'     \item Smaller values (e.g., 1.4) result in larger, coarser clusters.
-#'   }
-#'   Default is 2.
-#' @param max_iter Integer. The maximum number of iterations to perform if convergence
-#'   is not reached. Default is 100.
+#' @param inflation Numeric. The inflation parameter. Default is 2.5.
+#' @param max_iter Integer. The maximum number of iterations to perform if convergence is not reached. Default is 100.
 #' @param pruning Numeric. A threshold for pruning small values in the matrix to zero.
 #'   This preserves the sparsity of the matrix and significantly speeds up computation
 #'   while saving memory. Default is 1e-5.
-#'
-#' @return An igraph object containing MCL clustering labels.
-#'
 #' @importFrom igraph as_adjacency_matrix is_igraph V
 #' @importFrom Matrix Diagonal colSums drop0
-#'
+#' @importFrom methods as
+#' @return An igraph object containing MCL clustering labels.
 #' @examples
 #' \dontrun{
 #' library(igraph)
@@ -41,7 +31,7 @@
 #' }
 #' @export
 run_MCL <- function(g,
-                    inflation = 2,
+                    inflation = 2.5,
                     max_iter = 100,
                     pruning = 1e-5){
   
@@ -56,7 +46,9 @@ run_MCL <- function(g,
   ## scale initially (Column Normalization)
   col_sum <- Matrix::colSums(M)
   col_sum[col_sum == 0] <- 1 # Avoid division by zero for isolated nodes
-  M <- t(t(M) / col_sum)
+  
+  inv_diag <- Matrix::Diagonal(x = 1/col_sum)
+  M <- M %*% inv_diag # faster
   
   ## MCL iteration
   for (i in 1:max_iter){
@@ -75,8 +67,9 @@ run_MCL <- function(g,
     # 4. re-scale (Re-normalize columns)
     col_sum <- Matrix::colSums(M)
     col_sum[col_sum == 0] <- 1
-    M <- t(t(M) / col_sum)
-    
+    inv_diag <- Matrix::Diagonal(x = 1/col_sum)
+    M <- M %*% inv_diag
+   
     # 5. check convergence
     diff <- sum((M - M_prev)^2)
     
