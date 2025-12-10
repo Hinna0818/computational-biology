@@ -1,6 +1,6 @@
 #' Random Walk with Restart (RWR) methods for functional prediction in a graph
 #' @param g An igraph object for networks.
-#' @param seeds A character vector of seed node names (known disease genes or functional genesets).
+#' @param seedss A character vector of seeds node names (known disease genes or functional genesets).
 #' @param restart_prob Numeric (0-1). The restart probability (r). 
 #'   - High r (e.g., 0.7): Very local search, stays close to seeds.
 #'   - Low r (e.g., 0.1): Global search, diffuses further away.
@@ -37,7 +37,7 @@
 #'
 #' top_candidates <- res_df %>%
 #'   arrange(desc(inflammatory_response)) %>%
-#'   filter(is_seed_inflammatory_response == FALSE) %>%
+#'   filter(is_seeds_inflammatory_response == FALSE) %>%
 #'   head(10)
 #' print(top_candidates)
 #' }
@@ -73,8 +73,8 @@ run_RWR <- function(g,
   P0 <- Matrix::Matrix(0, nrow = n, ncol = 1)
   rownames(P0) <- all_nodes
   
-  seed_indices <- which(all_nodes %in% valid_seeds)
-  P0[seed_indices, 1] <- 1 / length(valid_seeds)
+  seeds_indices <- which(all_nodes %in% valid_seeds)
+  P0[seeds_indices, 1] <- 1 / length(valid_seeds)
   
   P_t <- P0
   
@@ -105,9 +105,9 @@ run_RWR <- function(g,
   final_scores <- as.numeric(P_t)
   igraph::vertex_attr(g, name = score_name) <- final_scores
   
-  # seed info
-  seed_attr_name <- paste0("is_seed_", score_name)
-  igraph::vertex_attr(g, name = seed_attr_name) <- V(g)$name %in% valid_seeds
+  # seeds info
+  seeds_attr_name <- paste0("is_seeds_", score_name)
+  igraph::vertex_attr(g, name = seeds_attr_name) <- V(g)$name %in% valid_seeds
     
   return(g)
 }
