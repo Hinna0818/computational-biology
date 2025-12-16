@@ -227,6 +227,14 @@ p3 <- ggplot(roc_df, aes(x = FPR, y = TPR, color = Model)) +
   )
 
 p3
+
+p4 <- aplot::plot_list(
+  aplot::plot_list(p1, p2, ncol = 2),
+  p3,
+  ncol = 1,
+  heights = c(2, 1))
+
+p4
 ```
 
 
